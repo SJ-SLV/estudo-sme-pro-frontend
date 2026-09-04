@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b45">
+<title>Criar conta — Estudo SME Pro</title>
+<style>
+:root{--n:#102b45;--b:#1c638f;--g:#f2b300;--bg:#f4f7fa;--c:#fff;--t:#172532;--m:#6b7d8b;--l:#dce5ec;--ok:#21865c;--bad:#c63d4b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--t)}
+button,input{font:inherit}
+button{cursor:pointer}
+.top{background:linear-gradient(135deg,#102b45,#1b5b84);color:#fff;box-shadow:0 4px 18px #102b4530}
+.topin{max-width:520px;margin:auto;padding:16px;display:flex;gap:10px;align-items:center}
+.logo{width:42px;height:42px;border:2px solid var(--g);border-radius:12px;display:grid;place-items:center;font-weight:900;color:var(--g)}
+.topin b{display:block}
+.topin small{opacity:.72}
+.wrap{max-width:520px;margin:auto;padding:22px 16px 60px}
+.card{background:var(--c);border:1px solid var(--l);border-radius:20px;padding:24px;box-shadow:0 8px 28px #102b4512;margin-top:18px}
+.card h1{font-size:24px;margin:0 0 6px;color:var(--n)}
+.card p{color:var(--m);line-height:1.55;margin:0 0 18px}
+label{display:block;font-weight:700;font-size:13px;color:var(--n);margin-bottom:6px}
+input{width:100%;padding:13px;border:1px solid var(--l);border-radius:12px;margin-bottom:16px}
+input:focus{outline:2px solid var(--b);border-color:transparent}
+.btn{border:0;border-radius:12px;padding:13px 18px;font-weight:800;width:100%}
+.primary{background:var(--n);color:#fff}
+.primary:disabled{opacity:.6;cursor:default}
+.notice{padding:13px 15px;border-radius:12px;margin-top:16px;line-height:1.55;display:none}
+.notice.show{display:block}
+.notice.success{background:#edf9f3;border:1px solid #bde4d0;color:#1c6b49}
+.notice.error{background:#fff0f1;border:1px solid #f3c1c6;color:#a72f3c}
+.ref{font-size:26px;font-weight:900;letter-spacing:.5px;color:var(--n);margin:6px 0}
+.steps{margin:14px 0 0;padding-left:20px;color:var(--m);line-height:1.7}
+.steps b{color:var(--t)}
+.footlink{text-align:center;margin-top:18px;color:var(--m);font-size:14px}
+.footlink a{color:var(--b);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="topin">
+  <div class="logo">SME</div>
+  <div><b>Estudo SME Pro</b><small>Criar conta de candidato</small></div>
+</div></header>
+
+<main class="wrap">
+  <div class="card" id="formCard">
+    <h1>Cria a tua conta</h1>
+    <p>Indica o teu nome completo. Vamos gerar uma referência única para acompanhares o estado do teu pedido.</p>
+    <form id="form">
+      <label for="nome">Nome completo</label>
+      <input id="nome" type="text" placeholder="Ex: Tomás Luciano" autocomplete="name" required minlength="3" maxlength="120">
+      <button class="btn primary" type="submit" id="btnSubmit">Criar conta</button>
+    </form>
+    <div class="notice" id="notice"></div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <h1>Conta criada</h1>
+    <p>Guarda esta referência — vais precisar dela para acompanhar o teu pedido.</p>
+    <div class="ref" id="refValue">—</div>
+    <ol class="steps">
+      <li>Paga <b>500 Kz</b> via pagamento Express.</li>
+      <li>Envia o comprovativo pelo WhatsApp para <b>999 999 999</b>, junto com a tua referência.</li>
+      <li>Aguarda entre <b>10 a 20 minutos</b> — vais receber o teu código de acesso pelo mesmo WhatsApp.</li>
+      <li>Depois disso, faz login com o teu nome e o código recebido.</li>
+    </ol>
+  </div>
+
+  <p class="footlink">Já tens um código de acesso? <a href="login.html">Entrar</a></p>
+</main>
+
+<script>
+const API_BASE = 'https://estudo-sme-pro-backend-1.onrender.com/api';
+
+const form = document.getElementById('form');
+const notice = document.getElementById('notice');
+const btnSubmit = document.getElementById('btnSubmit');
+const formCard = document.getElementById('formCard');
+const resultCard = document.getElementById('resultCard');
+const refValue = document.getElementById('refValue');
+
+function showNotice(msg, type){
+  notice.textContent = msg;
+  notice.className = 'notice show ' + type;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nome = document.getElementById('nome').value.trim();
+  notice.className = 'notice';
+  if (nome.length < 3) {
+    showNotice('Indica o teu nome completo.', 'error');
+    return;
+  }
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = 'A criar conta…';
+  try {
+    const res = await fetch(`${API_BASE}/candidatos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showNotice(data.erro || 'Não foi possível criar a conta. Tenta novamente.', 'error');
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Criar conta';
+      return;
+    }
+    refValue.textContent = data.referencia;
+    formCard.style.display = 'none';
+    resultCard.style.display = 'block';
+  } catch (err) {
+    showNotice('Não foi possível ligar ao servidor. Verifica a tua ligação e tenta novamente.', 'error');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Criar conta';
+  }
+});
+</script>
+</body>
+</html>

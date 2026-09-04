@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b45">
+<title>Painel do Administrador — Estudo SME Pro</title>
+<style>
+:root{--n:#102b45;--b:#1c638f;--g:#f2b300;--bg:#f4f7fa;--c:#fff;--t:#172532;--m:#6b7d8b;--l:#dce5ec;--ok:#21865c;--bad:#c63d4b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--t)}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.top{background:linear-gradient(135deg,#102b45,#1b5b84);color:#fff;box-shadow:0 4px 18px #102b4530;position:sticky;top:0;z-index:10}
+.topin{max-width:900px;margin:auto;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{width:42px;height:42px;border:2px solid var(--g);border-radius:12px;display:grid;place-items:center;font-weight:900;color:var(--g)}
+.brand b{display:block}
+.brand small{opacity:.72}
+.top button{background:#ffffff14;color:#fff;border:1px solid #ffffff25;border-radius:10px;padding:9px 12px}
+.wrap{max-width:900px;margin:auto;padding:20px 16px 60px}
+.card{background:var(--c);border:1px solid var(--l);border-radius:20px;padding:22px;box-shadow:0 8px 28px #102b4512}
+.card h1{font-size:22px;margin:0 0 6px;color:var(--n)}
+.card h2{font-size:18px;margin:0 0 14px;color:var(--n)}
+.card p{color:var(--m);line-height:1.55}
+label{display:block;font-weight:700;font-size:13px;color:var(--n);margin-bottom:6px}
+input,textarea{width:100%;padding:13px;border:1px solid var(--l);border-radius:12px;margin-bottom:16px}
+input:focus,textarea:focus{outline:2px solid var(--b);border-color:transparent}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:800}
+.primary{background:var(--n);color:#fff}
+.gold{background:var(--g);color:#172532}
+.danger{background:#fff0f1;color:#a72f3c}
+.secondary{background:#eaf1f6;color:var(--n)}
+.btn:disabled{opacity:.6;cursor:default}
+.notice{padding:13px 15px;border-radius:12px;margin-top:14px;line-height:1.55;display:none}
+.notice.show{display:block}
+.notice.success{background:#edf9f3;border:1px solid #bde4d0;color:#1c6b49}
+.notice.error{background:#fff0f1;border:1px solid #f3c1c6;color:#a72f3c}
+.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{background:#fff;border:1px solid var(--l);border-radius:16px;padding:16px;box-shadow:0 8px 28px #102b4512}
+.kpi-card .label{color:var(--m);font-size:13px}
+.kpi-card .kpi{font-size:26px;font-weight:900;color:var(--n)}
+.section{margin-top:22px}
+.filters{display:flex;gap:8px;overflow:auto;margin-bottom:14px}
+.filters button{white-space:nowrap;border:1px solid var(--l);background:#fff;border-radius:999px;padding:8px 13px;color:var(--n)}
+.filters button.active{background:var(--n);color:#fff}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--l);font-size:14px}
+th{color:var(--m);font-weight:700}
+.badge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800}
+.badge.pendente{background:#fff8df;color:#8a6d00}
+.badge.aprovado{background:#edf9f3;color:#1c6b49}
+.badge.recusado{background:#fff0f1;color:#a72f3c}
+.row-actions{display:flex;gap:6px}
+.row-actions button{padding:7px 10px;font-size:13px;border-radius:8px}
+.codebox{background:#f4f8fa;border:1px dashed var(--b);border-radius:12px;padding:14px;margin-top:10px}
+.codebox b{font-size:20px;color:var(--n)}
+.wrap-login{max-width:420px;margin:60px auto;padding:0 16px}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="wrap-login">
+  <div class="card">
+    <h1>Painel do Administrador</h1>
+    <p>Entra com as tuas credenciais de administrador.</p>
+    <form id="formLogin">
+      <label for="nomeAdmin">Nome</label>
+      <input id="nomeAdmin" type="text" required autocomplete="username">
+      <label for="codigoAdmin">Código</label>
+      <input id="codigoAdmin" type="password" required autocomplete="current-password">
+      <button class="btn primary" style="width:100%" type="submit" id="btnLogin">Entrar</button>
+    </form>
+    <div class="notice" id="noticeLogin"></div>
+  </div>
+</div>
+
+<div id="panelScreen" class="hidden">
+  <header class="top"><div class="topin">
+    <div class="brand"><div class="logo">SME</div><div><b>Painel do Administrador</b><small id="adminNome">—</small></div></div>
+    <button onclick="logout()">Sair</button>
+  </div></header>
+
+  <main class="wrap">
+    <div class="grid">
+      <div class="kpi-card"><div class="label">Total de candidatos</div><div class="kpi" id="kpiTotal">—</div></div>
+      <div class="kpi-card"><div class="label">Códigos por abrir</div><div class="kpi" id="kpiPorAbrir">—</div></div>
+      <div class="kpi-card"><div class="label">Códigos já vistos</div><div class="kpi" id="kpiVistos">—</div></div>
+    </div>
+
+    <div class="card section">
+      <h2>Aviso do painel dos candidatos</h2>
+      <p>Este texto passa na barra rolante do painel dos candidatos.</p>
+      <form id="formAviso">
+        <textarea id="textoAviso" rows="2" maxlength="500" placeholder="Escreve o aviso…"></textarea>
+        <button class="btn gold" type="submit" id="btnAviso">Publicar aviso</button>
+      </form>
+      <div class="notice" id="noticeAviso"></div>
+    </div>
+
+    <div class="card section">
+      <h2>Candidatos</h2>
+      <div class="filters">
+        <button class="active" data-status="" onclick="filtrar('', this)">Todos</button>
+        <button data-status="pendente" onclick="filtrar('pendente', this)">Pendentes</button>
+        <button data-status="aprovado" onclick="filtrar('aprovado', this)">Aprovados</button>
+        <button data-status="recusado" onclick="filtrar('recusado', this)">Recusados</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>Referência</th><th>Estado</th><th>Ações</th></tr></thead>
+          <tbody id="tbody"><tr><td colspan="4">A carregar…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="notice" id="noticeLista"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const API_BASE = 'https://estudo-sme-pro-backend-1.onrender.com/api';
+let token = sessionStorage.getItem('adminToken') || '';
+let filtroAtual = '';
+
+function setNotice(el, msg, type){
+  el.textContent = msg;
+  el.className = 'notice show ' + type;
+}
+function clearNotice(el){ el.className = 'notice'; }
+
+async function apiFetch(path, opts = {}) {
+  opts.headers = Object.assign({}, opts.headers, { Authorization: `Bearer ${token}` });
+  const res = await fetch(`${API_BASE}${path}`, opts);
+  if (res.status === 401) { logout(); throw new Error('Sessão expirada'); }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.erro || 'Erro no pedido.');
+  return data;
+}
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nome = document.getElementById('nomeAdmin').value.trim();
+  const codigo = document.getElementById('codigoAdmin').value.trim();
+  const notice = document.getElementById('noticeLogin');
+  const btn = document.getElementById('btnLogin');
+  clearNotice(notice);
+  btn.disabled = true; btn.textContent = 'A entrar…';
+  try {
+    const res = await fetch(`${API_BASE}/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, codigo })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.erro || 'Credenciais incorretas.');
+    token = data.token;
+    sessionStorage.setItem('adminToken', token);
+    sessionStorage.setItem('adminNome', data.nome);
+    entrarNoPainel(data.nome);
+  } catch (err) {
+    setNotice(notice, err.message, 'error');
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+function entrarNoPainel(nome){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panelScreen').classList.remove('hidden');
+  document.getElementById('adminNome').textContent = nome;
+  carregarResumo();
+  carregarCandidatos();
+}
+
+function logout(){
+  sessionStorage.removeItem('adminToken');
+  sessionStorage.removeItem('adminNome');
+  token = '';
+  document.getElementById('panelScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+async function carregarResumo(){
+  try {
+    const r = await apiFetch('/admin/resumo');
+    document.getElementById('kpiTotal').textContent = r.total;
+    document.getElementById('kpiPorAbrir').textContent = r.por_abrir;
+    document.getElementById('kpiVistos').textContent = r.vistos;
+  } catch (err) { /* silencioso, tabela principal já mostra erro se relevante */ }
+}
+
+function filtrar(status, btnEl){
+  filtroAtual = status;
+  document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+  carregarCandidatos();
+}
+
+async function carregarCandidatos(){
+  const tbody = document.getElementById('tbody');
+  const notice = document.getElementById('noticeLista');
+  clearNotice(notice);
+  tbody.innerHTML = '<tr><td colspan="4">A carregar…</td></tr>';
+  try {
+    const qs = filtroAtual ? `?status=${filtroAtual}` : '';
+    const lista = await apiFetch(`/admin/candidatos${qs}`);
+    if (!lista.length) {
+      tbody.innerHTML = '<tr><td colspan="4">Sem candidatos nesta categoria.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = '';
+    lista.forEach(c => {
+      const tr = document.createElement('tr');
+      const acoes = c.status === 'pendente'
+        ? `<button class="btn primary" onclick="aprovar('${c.referencia}')">Aprovar</button>
+           <button class="btn danger" onclick="recusar('${c.referencia}')">Recusar</button>`
+        : '—';
+      tr.innerHTML = `
+        <td>${escapeHtml(c.nome)}</td>
+        <td>${escapeHtml(c.referencia)}</td>
+        <td><span class="badge ${c.status}">${c.status}</span></td>
+        <td><div class="row-actions">${acoes}</div></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    setNotice(notice, err.message, 'error');
+    tbody.innerHTML = '<tr><td colspan="4">Não foi possível carregar a lista.</td></tr>';
+  }
+}
+
+async function aprovar(referencia){
+  const notice = document.getElementById('noticeLista');
+  try {
+    const r = await apiFetch(`/admin/candidatos/${referencia}/aprovar`, { method: 'POST' });
+    setNotice(notice, `${r.nome} aprovado. Código: ${r.codigo} — envia-o pelo WhatsApp. ${r.aviso}`, 'success');
+    carregarResumo();
+    carregarCandidatos();
+  } catch (err) {
+    setNotice(notice, err.message, 'error');
+  }
+}
+
+async function recusar(referencia){
+  const notice = document.getElementById('noticeLista');
+  try {
+    await apiFetch(`/admin/candidatos/${referencia}/recusar`, { method: 'POST' });
+    setNotice(notice, 'Candidato recusado.', 'success');
+    carregarResumo();
+    carregarCandidatos();
+  } catch (err) {
+    setNotice(notice, err.message, 'error');
+  }
+}
+
+document.getElementById('formAviso').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const texto = document.getElementById('textoAviso').value.trim();
+  const notice = document.getElementById('noticeAviso');
+  const btn = document.getElementById('btnAviso');
+  clearNotice(notice);
+  btn.disabled = true; btn.textContent = 'A publicar…';
+  try {
+    await apiFetch('/admin/aviso', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto })
+    });
+    setNotice(notice, 'Aviso publicado com sucesso.', 'success');
+  } catch (err) {
+    setNotice(notice, err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Publicar aviso';
+  }
+});
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+if (token) {
+  const nome = sessionStorage.getItem('adminNome') || 'Administrador';
+  entrarNoPainel(nome);
+}
+</script>
+</body>
+</html>
