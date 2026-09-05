@@ -59,7 +59,7 @@ input:focus{outline:2px solid var(--b);border-color:transparent}
     <p>Usa o nome e o código de acesso que recebeste pelo WhatsApp.</p>
     <form id="formLogin">
       <label for="nomeLogin">Nome completo</label>
-      <input id="nomeLogin" type="text" placeholder="Ex: Mano M" autocomplete="name" required>
+      <input id="nomeLogin" type="text" placeholder="Ex: Tomás Luciano" autocomplete="name" required>
       <label for="codigoLogin">Código de acesso</label>
       <input id="codigoLogin" type="text" placeholder="Código recebido pelo WhatsApp" autocomplete="one-time-code" required>
       <button class="btn primary" type="submit" id="btnLogin">Entrar</button>
@@ -83,7 +83,7 @@ input:focus{outline:2px solid var(--b);border-color:transparent}
     <p>Indica o teu nome e a tua referência. Se já tiveres recebido um código antes, a equipa vai gerar um novo e enviá-lo pelo WhatsApp.</p>
     <form id="formRecuperar">
       <label for="nomeRecuperar">Nome completo</label>
-      <input id="nomeRecuperar" type="text" placeholder="Ex: Mano M" autocomplete="name" required>
+      <input id="nomeRecuperar" type="text" placeholder="Ex: Tomás Luciano" autocomplete="name" required>
       <label for="referenciaRecuperar">Referência</label>
       <input id="referenciaRecuperar" type="text" placeholder="Ex: SME-A1B2C3" required>
       <button class="btn primary" type="submit" id="btnRecuperar">Pedir novo código</button>
@@ -107,6 +107,99 @@ function showPane(name){
 }
 
 function setNotice(el, msg, type){
+  el.textContent = msg;
+  el.className = 'notice show ' + type;
+}
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nome = document.getElementById('nomeLogin').value.trim();
+  const codigo = document.getElementById('codigoLogin').value.trim();
+  const notice = document.getElementById('noticeLogin');
+  const btn = document.getElementById('btnLogin');
+  notice.className = 'notice';
+  if (!nome || !codigo) { setNotice(notice, 'Preenche nome e código.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'A entrar…';
+  try {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, codigo })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setNotice(notice, data.erro || 'Não foi possível entrar.', 'error');
+      btn.disabled = false; btn.textContent = 'Entrar';
+      return;
+    }
+    sessionStorage.setItem('candidato', JSON.stringify(data));
+    setNotice(notice, `Bem-vindo, ${data.nome}! A abrir o teu painel de estudo…`, 'success');
+    setTimeout(() => { window.location.href = 'index.html'; }, 900);
+  } catch (err) {
+    setNotice(notice, 'Não foi possível ligar ao servidor. Tenta novamente.', 'error');
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+document.getElementById('formEstado').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const referencia = document.getElementById('referencia').value.trim();
+  const notice = document.getElementById('noticeEstado');
+  const btn = document.getElementById('btnEstado');
+  notice.className = 'notice';
+  if (!referencia) { setNotice(notice, 'Indica a tua referência.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'A consultar…';
+  try {
+    const res = await fetch(`${API_BASE}/candidatos/${encodeURIComponent(referencia)}`);
+    const data = await res.json();
+    btn.disabled = false; btn.textContent = 'Consultar';
+    if (!res.ok) {
+      setNotice(notice, data.erro || 'Referência não encontrada.', 'error');
+      return;
+    }
+    const estados = {
+      pendente: ['A tua candidatura está pendente. Confirma se já enviaste o comprovativo pelo WhatsApp para 999 999 999.', 'pending'],
+      aprovado: ['A tua candidatura foi aprovada! O teu código de acesso já foi enviado pelo WhatsApp — usa-o para entrar.', 'success'],
+      recusado: ['A tua candidatura foi recusada. Contacta a equipa pelo WhatsApp para mais informações.', 'error']
+    };
+    const [msg, type] = estados[data.status] || ['Estado desconhecido.', 'error'];
+    setNotice(notice, msg, type);
+  } catch (err) {
+    setNotice(notice, 'Não foi possível ligar ao servidor. Tenta novamente.', 'error');
+    btn.disabled = false; btn.textContent = 'Consultar';
+  }
+});
+
+document.getElementById('formRecuperar').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nome = document.getElementById('nomeRecuperar').value.trim();
+  const referencia = document.getElementById('referenciaRecuperar').value.trim();
+  const notice = document.getElementById('noticeRecuperar');
+  const btn = document.getElementById('btnRecuperar');
+  notice.className = 'notice';
+  if (!nome || !referencia) { setNotice(notice, 'Preenche o teu nome e a tua referência.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'A enviar pedido…';
+  try {
+    const res = await fetch(`${API_BASE}/recuperar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, referencia })
+    });
+    const data = await res.json();
+    btn.disabled = false; btn.textContent = 'Pedir novo código';
+    if (!res.ok) {
+      setNotice(notice, data.erro || 'Não foi possível processar o pedido.', 'error');
+      return;
+    }
+    setNotice(notice, data.mensagem, 'success');
+  } catch (err) {
+    setNotice(notice, 'Não foi possível ligar ao servidor. Tenta novamente.', 'error');
+    btn.disabled = false; btn.textContent = 'Pedir novo código';
+  }
+});
+</script>
+</body>
+</html>function setNotice(el, msg, type){
   el.textContent = msg;
   el.className = 'notice show ' + type;
 }
